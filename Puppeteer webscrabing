@@ -1,0 +1,176 @@
+const puppeteer = require('puppeteer');
+
+const fs = require('fs');
+
+async function getRandomItem(link) {
+
+  let data = fs.readFileSync(link, 'utf-8');
+
+  let processedData = JSON.parse(data);
+
+  let processedDataLength = processedData.length;
+
+  let urlIndex = Math.floor(Math.random() * processedDataLength);
+
+  return processedData[urlIndex];
+
+}
+
+async function randomTime(min, max) {
+
+  const random = Math.floor(Math.random() * max) + min;
+
+  return random;
+
+}
+
+async function bot() {
+
+  try {
+
+    let userAgent = await getRandomItem('assets/list-of-UA.json');
+
+    let url = await getRandomItem('assets/list-of-links.json');
+
+    let proxy = await getRandomItem('assets/list-of-proxy.json');
+
+    const config = {
+
+      executablePath: 'C:/Users/User/AppData/Local/Google/Chrome/Application/chrome.exe',
+
+      headless: false,
+
+      defaultViewport: null,
+
+      ignoreDefaultArgs: ['--enable-automation'],
+
+      args: [
+
+        '--use-gl=angle',
+
+        '--start-maximized',
+
+        '--no-first-run',
+
+        '--no-sandbox',
+
+        '--disable-setuid-sandbox',
+
+        --proxy-server=${http://myUsername:myPassword@my.proxy.com:3001}
+
+//”—proxy-server=socks5://127.0.0.1:9876”
+
+        // Add other desired arguments here
+
+      ]
+
+    };
+
+    const keyword = url.keyword;
+
+    const urlToFind = url.href;
+
+    const browser = await puppeteer.launch(config);
+
+    const page = await browser.newPage();
+
+
+
+    await page.goto('https://google.com/', { waitUntil: 'load', timeout: 0 });
+
+
+
+    const cookiePolicyButton = await page.$('#L2AGLb');
+
+    if (cookiePolicyButton) {
+
+      await cookiePolicyButton.click();
+
+    }
+
+    const inputHandle = await page.waitForXPath("//input[@name = 'q']");
+
+    await inputHandle.type(keyword, { delay: await randomTime(200, 250) });
+
+    await page.keyboard.press('Enter');
+
+    await page.waitForNavigation({ waitUntil: 'load', timeout: 0 });
+
+
+
+    let found = false;
+
+    while (!found) {
+
+      const searchResults = await page.$$('div.g');
+
+      for (let i = 0; i < searchResults.length; i++) {
+
+        const link = await searchResults[i].$('a');
+
+        const href = await (await link.getProperty('href')).jsonValue();
+
+
+
+        if (href.includes(urlToFind)) {
+
+const outputLink = 'https://splodz.com/';
+
+      console.log('Output Link:', outputLink);
+
+          await link.hover();
+
+          await link.click();
+
+          await page.waitForNavigation({ waitUntil: 'load', timeout: 0 });
+
+          const hrefs = await page.$$eval('a', (links) =>
+
+            links.map((link) => link.href)
+
+          );
+
+          console.log(hrefs);
+
+          await browser.close();
+
+          found = true;
+
+          break;
+
+        }
+
+      }
+
+      if (!found) {
+
+        const nextButton = await page.$('#pnnext');
+
+        if (nextButton) {
+
+          await nextButton.click();
+
+          await page.waitForNavigation({ waitUntil: 'load', timeout: 0 });
+
+        } else {
+
+          break;
+
+        }
+
+      }
+
+    }
+
+  } catch (error) {
+
+    console.error(error);
+
+    process.exit(1);
+
+  }
+
+}
+
+bot();
+
