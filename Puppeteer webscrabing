@@ -56,7 +56,7 @@ async function bot() {
 
         '--disable-setuid-sandbox',
 
-        --proxy-server="http://myUsername:myPassword@my.proxy.com:3001"
+        '--proxy-server=http://myUsername:myPassword@my.proxy.com:3001'
 
 //”—proxy-server=socks5://127.0.0.1:9876”
 
